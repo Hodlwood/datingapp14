@@ -53,16 +53,22 @@ export default function MessagesPage() {
 
     console.log('Setting up message listeners for user:', user.uid);
     
-    // Only query for received messages
-    const receivedMessagesQuery = query(
+    // Query for both received and sent messages
+    const messagesQuery = query(
       collection(db, 'messages'),
       where('toUserId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
 
-    // Set up listener for received messages only
+    const sentMessagesQuery = query(
+      collection(db, 'messages'),
+      where('fromUserId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    // Set up listener for received messages
     const unsubscribeReceived = onSnapshot(
-      receivedMessagesQuery,
+      messagesQuery,
       async (snapshot) => {
         console.log('Received messages snapshot received:', snapshot.size, 'messages');
         const receivedMessages: Message[] = snapshot.docs.map(doc => {
@@ -74,8 +80,13 @@ export default function MessagesPage() {
           } as Message;
         });
         
-        // Update messages state with received messages only
-        setMessages(receivedMessages);
+        // Update messages state with received messages
+        setMessages(prev => {
+          // Filter out any existing received messages to avoid duplicates
+          const existingIds = new Set(prev.filter(m => !m.isSent).map(m => m.id));
+          const newMessages = receivedMessages.filter(m => !existingIds.has(m.id));
+          return [...prev, ...newMessages];
+        });
 
         // Fetch sender profiles
         const uniqueSenderIds = Array.from(new Set(receivedMessages.map(msg => msg.fromUserId)));
@@ -88,19 +99,53 @@ export default function MessagesPage() {
       }
     );
 
+    // Set up listener for sent messages
+    const unsubscribeSent = onSnapshot(
+      sentMessagesQuery,
+      async (snapshot) => {
+        console.log('Sent messages snapshot received:', snapshot.size, 'messages');
+        const sentMessages: Message[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            isSent: true
+          } as Message;
+        });
+        
+        // Update messages state with sent messages
+        setMessages(prev => {
+          // Filter out any existing sent messages to avoid duplicates
+          const existingIds = new Set(prev.filter(m => m.isSent).map(m => m.id));
+          const newMessages = sentMessages.filter(m => !existingIds.has(m.id));
+          return [...prev, ...newMessages];
+        });
+
+        // Fetch recipient profiles
+        const uniqueRecipientIds = Array.from(new Set(sentMessages.map(msg => msg.toUserId)));
+        await fetchUserProfiles(uniqueRecipientIds);
+        setSentMessagesLoaded(true);
+      },
+      (error) => {
+        console.error('Error in sent messages listener:', error);
+        setSentMessagesLoaded(true);
+      }
+    );
+
     return () => {
-      console.log('Cleaning up messages listener');
+      console.log('Cleaning up messages listeners');
       unsubscribeReceived();
+      unsubscribeSent();
     };
   }, [user]);
 
   useEffect(() => {
-    // Only set loading to false when the query has completed
-    if (receivedMessagesLoaded) {
-      console.log('Query completed, setting loading to false');
+    // Only set loading to false when both queries have completed
+    if (receivedMessagesLoaded && sentMessagesLoaded) {
+      console.log('All queries completed, setting loading to false');
       setLoadingMessages(false);
     }
-  }, [receivedMessagesLoaded]);
+  }, [receivedMessagesLoaded, sentMessagesLoaded]);
 
   const fetchUserProfiles = async (userIds: string[]) => {
     const profiles: { [key: string]: UserProfile } = {};
@@ -140,7 +185,8 @@ export default function MessagesPage() {
 
     const groupedMessages: { [key: string]: Message[] } = {};
     messages.forEach(message => {
-      const otherUserId = message.fromUserId; // Since we only have received messages, fromUserId is always the other user
+      // Determine the other user ID based on whether the message was sent or received
+      const otherUserId = message.isSent ? message.toUserId : message.fromUserId;
       if (!groupedMessages[otherUserId]) {
         groupedMessages[otherUserId] = [];
       }
@@ -151,8 +197,8 @@ export default function MessagesPage() {
       const sortedMessages = messages.sort((a, b) => 
         getMessageTimestamp(b).getTime() - getMessageTimestamp(a).getTime()
       );
-      // Count unread messages
-      const unreadCount = messages.filter(m => !m.read).length;
+      // Count unread messages (only for received messages)
+      const unreadCount = messages.filter(m => !m.isSent && !m.read).length;
       
       return {
         id: otherUserId,
@@ -336,14 +382,14 @@ export default function MessagesPage() {
                     className={`flex ${isSent ? 'justify-start' : 'justify-end'} mb-2`}
                   >
                     <div
-                      className={`max-w-[45%] rounded-lg p-2.5 ${
+                      className={`max-w-[70%] rounded-lg p-3 ${
                         isSent
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200 text-gray-800'
                       }`}
                     >
                       <p className="text-sm">{message.content}</p>
-                      <p className={`text-xs mt-0.5 ${isSent ? 'text-blue-100' : 'text-gray-500'}`}>
+                      <p className="text-xs mt-1 opacity-70">
                         {getMessageTimestamp(message).toLocaleString()}
                       </p>
                     </div>

@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { CameraIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { compressImage } from '@/lib/utils/imageCompression';
 import ImageCropper from './ImageCropper';
+import Image from 'next/image';
 
 interface ProfilePictureProps {
   imageUrl?: string;
@@ -46,7 +47,7 @@ export default function ProfilePicture({ imageUrl, onImageUpdate, onImageDelete 
       setIsUploading(true);
 
       // Compress the cropped image
-      const compressed = await compressImage(croppedFile, 800, 800, 0.8);
+      const compressed = await compressImage(croppedFile, 4096, 4096, 1.0);
       
       // Upload and get final URL
       const uploadedUrl = await onImageUpdate(compressed.file);
@@ -98,24 +99,26 @@ export default function ProfilePicture({ imageUrl, onImageUpdate, onImageDelete 
         <div className="w-full h-full rounded-full overflow-hidden bg-gray-200">
           {previewUrl ? (
             <>
-              <img
-                src={previewUrl}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-              {/* Delete overlay - shows on hover */}
-              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="text-white p-2 rounded-full hover:bg-red-500 transition-colors"
-                >
-                  {isDeleting ? (
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <TrashIcon className="w-6 h-6" />
-                  )}
-                </button>
+              <div className="relative w-full h-full">
+                <img
+                  src={previewUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
+                {/* Delete overlay - shows on hover */}
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="text-white p-2 rounded-full hover:bg-red-500 transition-colors"
+                  >
+                    {isDeleting ? (
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <TrashIcon className="w-6 h-6" />
+                    )}
+                  </button>
+                </div>
               </div>
             </>
           ) : (

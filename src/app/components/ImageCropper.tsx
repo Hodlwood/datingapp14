@@ -74,12 +74,12 @@ export default function ImageCropper({
 
     canvas.toBlob((blob) => {
       if (!blob) return;
-      const file = new File([blob], 'cropped-profile-picture.jpg', {
-        type: 'image/jpeg',
+      const file = new File([blob], 'cropped-profile-picture.png', {
+        type: 'image/png',
         lastModified: Date.now(),
       });
       onCropComplete(file);
-    }, 'image/jpeg', 0.95);
+    }, 'image/png', 1.0);
   };
 
   return (

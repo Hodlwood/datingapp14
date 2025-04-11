@@ -24,7 +24,8 @@ const nextConfig = {
       'lh3.googleusercontent.com',  // Google Auth profile images
       'firebasestorage.googleapis.com',  // Firebase Storage images
       'storage.googleapis.com',
-      'datingapp5.appspot.com'
+      'datingapp5.appspot.com',
+      'datingapp5.firebasestorage.app'
     ],
   },
   async headers() {

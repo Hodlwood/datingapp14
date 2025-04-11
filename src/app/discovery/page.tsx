@@ -242,6 +242,8 @@ export default function DiscoveryPage() {
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayType, setOverlayType] = useState<'like' | 'dislike' | null>(null);
   const [rejectedProfiles, setRejectedProfiles] = useState<RejectedProfile[]>([]);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const handleSignOut = async () => {
     try {
@@ -411,8 +413,53 @@ export default function DiscoveryPage() {
     }, 500);
   };
 
-  const handleLike = () => {
-    handleSwipe('right');
+  const handleLike = async () => {
+    if (!user || !currentProfile) {
+      console.error('Cannot send message: user or currentProfile is missing', { 
+        user: user ? 'exists' : 'missing', 
+        currentProfile: currentProfile ? 'exists' : 'missing' 
+      });
+      return;
+    }
+    
+    try {
+      console.log('Sending "hi" message to profile:', currentProfile.id);
+      
+      // Create the message document
+      const messageData = {
+        fromUserId: user.uid,
+        toUserId: currentProfile.id,
+        content: "hi",
+        createdAt: serverTimestamp(),
+        read: false
+      };
+
+      console.log('Message data:', messageData);
+
+      // Create the message in the messages collection
+      const messagesRef = collection(db, 'messages');
+      const docRef = await addDoc(messagesRef, messageData);
+      console.log('Message sent successfully with ID:', docRef.id);
+      
+      // Show toast notification
+      setToastMessage(`Message sent to ${currentProfile.name}!`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+
+      // Show green checkmark overlay and swipe right
+      setOverlayType('like');
+      setShowOverlay(true);
+      setDirection(1);
+      
+      // Hide overlay and move to next profile after animation
+      setTimeout(() => {
+        setShowOverlay(false);
+        setCurrentIndex((prev) => prev + 1);
+      }, 500);
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
+    }
   };
 
   const handleDislike = async () => {
@@ -456,11 +503,11 @@ export default function DiscoveryPage() {
     try {
       setSendingMessage(true);
       
-      // Create the message document with a simpler structure
+      // Create the message document with the actual message content
       const messageData = {
         fromUserId: user.uid,
         toUserId: selectedProfile.id,
-        content: "hi",
+        content: messageContent.trim(),
         createdAt: serverTimestamp(),
         read: false
       };
@@ -696,6 +743,13 @@ export default function DiscoveryPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-up">
+          {toastMessage}
         </div>
       )}
     </div>
