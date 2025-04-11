@@ -17,6 +17,7 @@ interface Message {
   createdAt: any;
   read: boolean;
   isSent?: boolean;
+  hasReplied: boolean;
 }
 
 interface UserProfile {
@@ -187,10 +188,16 @@ export default function MessagesPage() {
     messages.forEach(message => {
       // Determine the other user ID based on whether the message was sent or received
       const otherUserId = message.isSent ? message.toUserId : message.fromUserId;
-      if (!groupedMessages[otherUserId]) {
-        groupedMessages[otherUserId] = [];
+      
+      // Only include messages where:
+      // 1. User is the receiver (they can see all messages sent to them)
+      // 2. User is the sender AND the receiver has replied (hasReplied is true)
+      if (!message.isSent || (message.isSent && message.hasReplied)) {
+        if (!groupedMessages[otherUserId]) {
+          groupedMessages[otherUserId] = [];
+        }
+        groupedMessages[otherUserId].push(message);
       }
-      groupedMessages[otherUserId].push(message);
     });
 
     const conversationList: Conversation[] = Object.entries(groupedMessages).map(([otherUserId, messages]) => {
@@ -238,7 +245,8 @@ export default function MessagesPage() {
         toUserId: selectedConversation.otherUserId,
         content: newMessage.trim(),
         createdAt: serverTimestamp(),
-        read: false
+        read: false,
+        hasReplied: true // Set hasReplied to true when sending a reply
       };
 
       // Add the message to Firestore

@@ -425,13 +425,14 @@ export default function DiscoveryPage() {
     try {
       console.log('Sending "hi" message to profile:', currentProfile.id);
       
-      // Create the message document
+      // Create the message document with hasReplied field
       const messageData = {
         fromUserId: user.uid,
         toUserId: currentProfile.id,
         content: "hi",
         createdAt: serverTimestamp(),
-        read: false
+        read: false,
+        hasReplied: false
       };
 
       console.log('Message data:', messageData);
@@ -503,13 +504,14 @@ export default function DiscoveryPage() {
     try {
       setSendingMessage(true);
       
-      // Create the message document with the actual message content
+      // Create the message document with hasReplied field
       const messageData = {
         fromUserId: user.uid,
         toUserId: selectedProfile.id,
         content: messageContent.trim(),
         createdAt: serverTimestamp(),
-        read: false
+        read: false,
+        hasReplied: false
       };
 
       // Create the message in the messages collection
