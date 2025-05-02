@@ -2,18 +2,39 @@
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
   ],
-  "plugins": ["@typescript-eslint", "react-hooks"],
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "react-hooks"
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "./tsconfig.json",
-    "tsconfigRootDir": "."
+    "tsconfigRootDir": ".",
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   },
   "rules": {
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": "warn",
     "react-hooks/exhaustive-deps": "warn",
-    "@next/next/no-img-element": "warn"
+    "@next/next/no-img-element": "warn",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-var-requires": "off"
   }
 }
