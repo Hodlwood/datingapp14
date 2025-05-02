@@ -68,13 +68,7 @@ const nextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Handle undici module
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        undici: 'node-fetch',
-      };
-
-      // Handle private class fields
+      // Handle Firebase modules
       config.module.rules.push({
         test: /\.(js|mjs|jsx|ts|tsx)$/,
         include: [
@@ -89,6 +83,12 @@ const nextConfig = {
           },
         },
       });
+
+      // Handle undici module
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        undici: false,
+      };
     }
     return config;
   },
