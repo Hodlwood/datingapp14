@@ -1,0 +1,5 @@
+.eslintrc.json
+.eslintrc.js
+.eslintrc
+node_modules/.cache/eslint
+node_modules/.cache/typescript 
