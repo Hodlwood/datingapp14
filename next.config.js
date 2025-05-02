@@ -91,14 +91,6 @@ const nextConfig = {
 
     return config;
   },
-  eslint: {
-    // Disable ESLint during builds
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    // Disable TypeScript checks during builds
-    ignoreBuildErrors: true,
-  },
 };
 
 module.exports = nextConfig 
