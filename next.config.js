@@ -68,16 +68,16 @@ const nextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        undici: false,
+      // Handle undici module
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        undici: 'node-fetch',
       };
 
-      // Handle undici module and its private class fields
+      // Handle private class fields
       config.module.rules.push({
         test: /\.(js|mjs|jsx|ts|tsx)$/,
         include: [
-          /node_modules\/undici/,
           /node_modules\/@firebase/,
           /node_modules\/firebase/,
         ],
