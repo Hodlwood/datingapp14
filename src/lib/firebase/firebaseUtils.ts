@@ -31,6 +31,28 @@ import {
   handleError 
 } from '@/lib/utils/errorUtils';
 
+interface UserProfile {
+  id?: string;
+  name?: string;
+  age?: number;
+  bio?: string;
+  photos?: string[];
+  interests?: string[];
+  location?: {
+    latitude: number;
+    longitude: number;
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  gender?: string;
+  lookingFor?: string;
+  test?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  onboardingCompleted?: boolean;
+}
+
 // Auth functions
 export const logoutUser = () => signOut(auth);
 
@@ -71,19 +93,33 @@ export const uploadFile = async (file: File, path: string) => {
 };
 
 // User profile operations
-export const createUserProfile = async (userId: string, profileData: any) => {
+export const createUserProfile = async (userId: string, profileData: Partial<UserProfile>) => {
   try {
-    await setDoc(doc(db, 'users', userId), {
+    console.log('Creating user profile with data:', {
+      userId,
+      profileData,
+      requiredFields: {
+        test: false,
+        onboardingCompleted: true,
+        gender: profileData.gender
+      }
+    });
+
+    const userRef = doc(db, 'users', userId);
+    const newProfile = {
       ...profileData,
+      test: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      inDiscovery: true,
       onboardingCompleted: true
-    });
-    return true;
+    };
+
+    console.log('Final profile data being saved:', newProfile);
+    await setDoc(userRef, newProfile);
+    return newProfile;
   } catch (error) {
     console.error('Error creating user profile:', error);
-    return false;
+    throw error;
   }
 };
 

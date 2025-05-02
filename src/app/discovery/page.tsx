@@ -348,6 +348,18 @@ export default function DiscoveryPage() {
         const querySnapshot = await getDocs(q);
         console.log('Query returned', querySnapshot.size, 'profiles');
 
+        // Log all profiles before filtering
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          console.log('Raw profile data:', { 
+            id: doc.id,
+            gender: data.gender,
+            onboardingCompleted: data.onboardingCompleted,
+            name: data.name,
+            allFields: Object.keys(data)
+          });
+        });
+
         const loadedProfiles: Profile[] = [];
 
         querySnapshot.forEach((doc) => {

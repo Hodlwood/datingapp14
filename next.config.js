@@ -19,14 +19,27 @@ const nextConfig = {
         hostname: 'firebasestorage.googleapis.com',
         pathname: '/**',
       },
-    ],
-    domains: [
-      'lh3.googleusercontent.com',  // Google Auth profile images
-      'firebasestorage.googleapis.com',  // Firebase Storage images
-      'storage.googleapis.com',
-      'datingapp5.appspot.com',
-      'datingapp5.firebasestorage.app'
-    ],
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'datingapp5.appspot.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'datingapp5.firebasestorage.app',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
+      }
+    ]
   },
   async headers() {
     return [
