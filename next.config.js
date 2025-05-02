@@ -38,7 +38,15 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
@@ -64,21 +72,21 @@ const nextConfig = {
       undici: false,
     };
 
-    // Handle Firebase modules and undici
+    // Handle Firebase modules
     config.module.rules.push({
-      test: /\.m?js/,
+      test: /\.(js|mjs|jsx|ts|tsx)$/,
       include: [
         /node_modules\/undici/,
-        /node_modules\/@firebase\/storage/,
-        /node_modules\/firebase/
+        /node_modules\/@firebase/,
+        /node_modules\/firebase/,
       ],
       use: {
         loader: 'babel-loader',
         options: {
           presets: ['@babel/preset-env'],
-          plugins: ['@babel/plugin-proposal-private-property-in-object']
-        }
-      }
+          plugins: ['@babel/plugin-proposal-private-property-in-object'],
+        },
+      },
     });
 
     return config;
@@ -88,7 +96,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // Disable TypeScript errors during builds
+    // Disable TypeScript checks during builds
     ignoreBuildErrors: true,
   },
 };
