@@ -51,6 +51,7 @@ const nextConfig = {
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
   },
   async headers() {
     return [
@@ -71,6 +72,23 @@ const nextConfig = {
         ...config.resolve.fallback,
         undici: false,
       };
+
+      // Handle undici module and its private class fields
+      config.module.rules.push({
+        test: /\.(js|mjs|jsx|ts|tsx)$/,
+        include: [
+          /node_modules\/undici/,
+          /node_modules\/@firebase/,
+          /node_modules\/firebase/,
+        ],
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env'],
+            plugins: ['@babel/plugin-proposal-private-property-in-object'],
+          },
+        },
+      });
     }
     return config;
   },
