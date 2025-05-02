@@ -64,12 +64,21 @@ const nextConfig = {
       undici: false,
     };
 
-    // Handle Firebase modules
+    // Handle Firebase modules and undici
     config.module.rules.push({
       test: /\.m?js/,
-      resolve: {
-        fullySpecified: false,
-      },
+      include: [
+        /node_modules\/undici/,
+        /node_modules\/@firebase\/storage/,
+        /node_modules\/firebase/
+      ],
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env'],
+          plugins: ['@babel/plugin-proposal-private-property-in-object']
+        }
+      }
     });
 
     return config;
