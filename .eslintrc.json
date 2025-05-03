@@ -11,5 +11,17 @@
     "react/no-unescaped-entities": "off",
     "@next/next/no-img-element": "off",
     "react-hooks/exhaustive-deps": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   }
 }
