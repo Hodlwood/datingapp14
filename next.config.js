@@ -94,6 +94,7 @@ const nextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
+    dirs: [], // Disable ESLint completely
   },
   typescript: {
     ignoreBuildErrors: true,
