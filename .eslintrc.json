@@ -1,5 +1,5 @@
 {
-  "extends": [],
+  "extends": ["next/core-web-vitals"],
   "parser": "@typescript-eslint/parser",
   "plugins": [],
   "rules": {},
