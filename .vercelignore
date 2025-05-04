@@ -1,5 +1,8 @@
 .eslintrc.json
 .eslintrc.js
 .eslintrc
+.eslintcache
 node_modules/.cache/eslint
-node_modules/.cache/typescript 
+node_modules/.cache/typescript
+node_modules/.cache/next
+.next/cache 

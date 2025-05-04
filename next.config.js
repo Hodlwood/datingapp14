@@ -89,18 +89,41 @@ const nextConfig = {
         ...config.resolve.fallback,
         undici: false,
       };
+
+      // Disable additional modules
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        dns: false,
+        child_process: false,
+        module: false,
+      };
+
+      config.module.rules.push({
+        test: /\.js$/,
+        include: /node_modules\/undici/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env'],
+            plugins: ['@babel/plugin-proposal-private-methods', '@babel/plugin-proposal-class-properties']
+          }
+        }
+      });
     }
     return config;
   },
   eslint: {
     ignoreDuringBuilds: true,
-    dirs: [], // Disable ESLint completely
   },
   typescript: {
     ignoreBuildErrors: true,
   },
   experimental: {
-    esmExternals: 'loose',
+    esmExternals: true,
+    serverComponentsExternalPackages: ['undici']
   },
 };
 

@@ -98,59 +98,54 @@ export default function ProfilePicture({ imageUrl, onImageUpdate, onImageDelete 
         {/* Profile Picture */}
         <div className="w-full h-full rounded-full overflow-hidden bg-gray-200">
           {previewUrl ? (
-            <>
-              <div className="relative w-full h-full">
-                <img
-                  src={previewUrl}
-                  alt="Profile"
-                  className="w-full h-full object-cover rounded-full"
-                />
-                {/* Delete overlay - shows on hover */}
-                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className="text-white p-2 rounded-full hover:bg-red-500 transition-colors"
-                  >
-                    {isDeleting ? (
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <TrashIcon className="w-6 h-6" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </>
+            <Image
+              src={previewUrl}
+              alt="Profile picture"
+              width={128}
+              height={128}
+              className="w-full h-full object-cover"
+              priority
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-3xl font-semibold text-gray-400">
-              {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
+            <div className="w-full h-full flex items-center justify-center">
+              <CameraIcon className="w-8 h-8 text-gray-400" />
             </div>
           )}
         </div>
 
-        {/* Upload Button */}
-        <label
-          htmlFor="profile-picture"
-          className="absolute bottom-0 right-0 p-2 rounded-full bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition-colors"
-        >
-          {isUploading ? (
-            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <CameraIcon className="w-6 h-6" />
-          )}
-        </label>
-        <input
-          ref={fileInputRef}
-          type="file"
-          id="profile-picture"
-          className="hidden"
-          accept="image/*"
-          onChange={handleImageChange}
-          disabled={isUploading || isDeleting}
-        />
+        {/* Overlay with upload/delete buttons */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-full">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 bg-white rounded-full hover:bg-gray-100"
+              disabled={isUploading}
+            >
+              <CameraIcon className="w-5 h-5 text-gray-700" />
+            </button>
+            {previewUrl && (
+              <button
+                onClick={handleDelete}
+                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                disabled={isDeleting}
+              >
+                <TrashIcon className="w-5 h-5 text-red-500" />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Image Cropper Modal */}
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageChange}
+        accept="image/*"
+        className="hidden"
+      />
+
+      {/* Image cropper modal */}
       {cropperImage && (
         <ImageCropper
           imageUrl={cropperImage}

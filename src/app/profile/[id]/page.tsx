@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
-import ProfileMessages from '@/app/components/ProfileMessages';
+import ProfileMessages from '@/components/ProfileMessages';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import Image from 'next/image';

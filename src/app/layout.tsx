@@ -1,12 +1,10 @@
+import React from 'react';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
-import { AuthRedirect } from '@/app/components/AuthRedirect';
-import Navbar from '@/app/components/Navbar';
-import ChatWidget from './components/ChatWidget';
-
-const inter = Inter({ subsets: ['latin'] });
+import { AuthRedirect } from '@/components/AuthRedirect';
+import Navbar from '@/components/Navbar';
+import ChatWidget from '@/components/ChatWidget';
 
 export const metadata: Metadata = {
   title: 'Love Entrepreneurs',
@@ -20,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="font-sans">
         <AuthProvider>
           <AuthRedirect>
             <Navbar />

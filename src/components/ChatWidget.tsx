@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
 interface Message {
@@ -14,6 +14,12 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   // Add welcome message when chat is opened
   useEffect(() => {
@@ -24,7 +30,7 @@ export default function ChatWidget() {
         timestamp: new Date()
       }]);
     }
-  }, [isOpen]);
+  }, [isOpen, messages.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +96,7 @@ export default function ChatWidget() {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg hover:bg-purple-700 transition-colors z-50"
+          aria-label="Open chat"
         >
           <ChatBubbleLeftRightIcon className="h-6 w-6" />
         </button>
@@ -97,7 +104,11 @@ export default function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-lg shadow-xl z-50 flex flex-col">
+        <div 
+          className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-lg shadow-xl z-50 flex flex-col"
+          role="dialog"
+          aria-label="Chat window"
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex-1 text-center">
@@ -106,13 +117,18 @@ export default function ChatWidget() {
             <button
               onClick={() => setIsOpen(false)}
               className="text-gray-500 hover:text-gray-700"
+              aria-label="Close chat"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div 
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+            role="log"
+            aria-live="polite"
+          >
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -143,6 +159,7 @@ export default function ChatWidget() {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input Form */}
@@ -155,11 +172,13 @@ export default function ChatWidget() {
                 placeholder="Ask me anything about dating..."
                 className="flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isLoading}
+                aria-label="Type your message"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
                 className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Send message"
               >
                 <PaperAirplaneIcon className="h-6 w-6" />
               </button>

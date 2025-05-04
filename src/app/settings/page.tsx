@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import NotificationPreferences from '@/app/components/NotificationPreferences';
+import NotificationPreferences from '@/components/NotificationPreferences';
 
 export default function SettingsPage() {
   const { user, loading } = useAuth();
