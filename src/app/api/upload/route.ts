@@ -25,12 +25,18 @@ if (!admin.apps.length) {
       throw new Error('Missing required Firebase Admin environment variables');
     }
 
+    // Clean up the private key
+    const privateKey = config.privateKey
+      .replace(/\\n/g, '\n')  // Replace escaped newlines
+      .replace(/"/g, '')      // Remove quotes
+      .trim();                // Remove any extra whitespace
+
     // Initialize Firebase Admin with explicit project ID
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: config.projectId,
         clientEmail: config.clientEmail,
-        privateKey: config.privateKey.replace(/\\n/g, '\n'),
+        privateKey: privateKey,
       }),
       storageBucket: config.storageBucket || `${config.projectId}.appspot.com`,
     });

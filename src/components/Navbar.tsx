@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function Navbar() {
-  const { user, signOut, loading } = useAuth();
+  const { user, logout, loading } = useAuth();
   const router = useRouter();
 
   const handleAuth = async () => {
     if (user) {
-      await signOut();
+      await logout();
       router.push('/login');
     } else {
       router.push('/signup');
@@ -67,13 +67,13 @@ export default function Navbar() {
                       onClick={handleAuth}
                       className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
                     >
-                      Log Out
+                      Sign Out
                     </button>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-4">
                     <Link href="/login" className="text-gray-700 hover:text-blue-600">
-                      Log In
+                      Sign In
                     </Link>
                     <Link 
                       href="/signup" 

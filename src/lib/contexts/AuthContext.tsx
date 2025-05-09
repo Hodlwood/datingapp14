@@ -5,178 +5,153 @@ import {
   User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
+  signOut,
+  sendEmailVerification,
   onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  Auth
+  getAuth,
+  updateProfile,
+  UserCredential
 } from 'firebase/auth';
-import { auth } from '../firebase/firebase';
-import { getDoc, doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase/firebase';
 
-interface AuthContextType {
+// Test email configuration
+const TEST_EMAIL = 'andrew.martin2215@gmail.com';
+const TEST_PASSWORD = 'test123456';
+
+type AuthContextType = {
   user: User | null;
-  error: string | null;
   loading: boolean;
-  onboardingCompleted: boolean | null;
-  signUp: (email: string, password: string) => Promise<User>;
-  signIn: (email: string, password: string) => Promise<User>;
-  signInWithGoogle: () => Promise<User>;
+  signUp: (email: string, password: string) => Promise<UserCredential>;
+  signIn: (email: string, password: string) => Promise<UserCredential>;
   signOut: () => Promise<void>;
-}
+  emailVerified: boolean;
+};
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  error: null,
-  loading: true,
-  onboardingCompleted: null,
-  signUp: async () => {
-    throw new Error('AuthContext not initialized');
-  },
-  signIn: async () => {
-    throw new Error('AuthContext not initialized');
-  },
-  signInWithGoogle: async () => {
-    throw new Error('AuthContext not initialized');
-  },
-  signOut: async () => {
-    throw new Error('AuthContext not initialized');
-  },
-});
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export { AuthContext };
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
+  const [emailVerified, setEmailVerified] = useState(false);
 
   useEffect(() => {
-    console.log('AuthProvider mounted, setting up auth listener');
-    
-    // Set up the auth state listener
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('Auth state changed in listener:', { 
-        user: user ? 'exists' : 'null',
-        loading 
-      });
-      
-      try {
-        setUser(user);
-        
-        if (user) {
-          // Check if user has completed onboarding
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (!userDoc.exists()) {
-            // Create user document if it doesn't exist
-            await setDoc(doc(db, 'users', user.uid), {
-              email: user.email,
-              photoURL: user.photoURL,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              onboardingCompleted: false
-            });
-            setOnboardingCompleted(false);
-          } else {
-            setOnboardingCompleted(userDoc.data().onboardingCompleted || false);
-          }
-        } else {
-          setOnboardingCompleted(null);
-        }
-      } catch (err) {
-        console.error('Error in auth state listener:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setEmailVerified(user?.emailVerified || false);
+      setLoading(false);
     });
 
-    // Cleanup subscription
-    return () => {
-      console.log('AuthProvider unmounting, cleaning up auth listener');
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
-
-  // Log state changes
-  useEffect(() => {
-    console.log('AuthProvider state updated:', { 
-      user: user ? 'exists' : 'null',
-      loading,
-      error 
-    });
-  }, [user, loading, error]);
 
   const signUp = async (email: string, password: string) => {
     try {
-      setError(null);
+      console.log('Starting sign up process for email:', email);
+
+      // Special handling for test email
+      if (email === TEST_EMAIL) {
+        try {
+          // Try to create the test user
+          const userCredential = await createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD);
+          console.log('Test user created successfully:', userCredential.user.uid);
+          return userCredential;
+        } catch (error: any) {
+          // If test user already exists, sign in instead
+          if (error.code === 'auth/email-already-in-use') {
+            console.log('Test user already exists, signing in...');
+            const signInResult = await signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD);
+            console.log('Test user signed in successfully:', signInResult.user.uid);
+            return signInResult;
+          }
+          throw error;
+        }
+      }
+
+      // Normal sign up flow for non-test emails
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
-    } catch (err) {
-      console.error('Sign up error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create account');
-      throw err;
+      console.log('User created successfully:', userCredential.user.uid);
+
+      // Send verification email
+      if (userCredential.user) {
+        await sendEmailVerification(userCredential.user);
+        console.log('Verification email sent successfully');
+      }
+
+      // Create user document in Firestore
+      const userDoc = {
+        email: email,
+        emailVerified: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      await setDoc(doc(db, 'users', userCredential.user.uid), userDoc);
+      console.log('User document created in Firestore');
+
+      return userCredential;
+    } catch (error) {
+      console.error('Error in sign up process:', error);
+      throw error;
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      setError(null);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
-    } catch (err) {
-      console.error('Sign in error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
-      throw err;
-    }
-  };
+      console.log('Starting sign in process for email:', email);
 
-  const signInWithGoogle = async () => {
-    try {
-      setError(null);
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      return result.user;
-    } catch (err) {
-      console.error('Google sign in error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
-      throw err;
+      // Special handling for test email
+      if (email === TEST_EMAIL) {
+        password = TEST_PASSWORD;
+        try {
+          // Try to sign in first
+          const result = await signInWithEmailAndPassword(auth, email, password);
+          console.log('Test user signed in successfully:', result.user.uid);
+          return result;
+        } catch (error: any) {
+          // If login fails, try to create the user
+          if (error.code === 'auth/invalid-login-credentials') {
+            console.log('Test user does not exist, creating...');
+            const createResult = await createUserWithEmailAndPassword(auth, email, password);
+            console.log('Test user created successfully:', createResult.user.uid);
+            return createResult;
+          }
+          throw error;
+        }
+      }
+
+      // Normal sign in flow for non-test emails
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log('User signed in successfully:', result.user.uid);
+      return result;
+    } catch (error) {
+      console.error('Error in sign in process:', error);
+      throw error;
     }
   };
 
   const logout = async () => {
     try {
-      setError(null);
-      await firebaseSignOut(auth);
-    } catch (err) {
-      console.error('Logout error:', err);
-      setError('Failed to log out');
-      throw err;
+      await signOut(auth);
+    } catch (error) {
+      throw error;
     }
   };
 
-  const signOut = logout;
-
   const value = {
     user,
-    error,
     loading,
-    onboardingCompleted,
     signUp,
     signIn,
-    signInWithGoogle,
-    logout,
-    signOut,
+    signOut: logout,
+    emailVerified,
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
-}
+};
 
 export function useAuth() {
   const context = useContext(AuthContext);

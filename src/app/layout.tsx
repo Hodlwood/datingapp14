@@ -1,14 +1,16 @@
-import React from 'react';
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import { AuthRedirect } from '@/components/AuthRedirect';
 import Navbar from '@/components/Navbar';
 import ChatWidget from '@/components/ChatWidget';
 
+const inter = Inter({ subsets: ['latin'] });
+
 export const metadata: Metadata = {
-  title: 'Love Entrepreneurs',
-  description: 'Find your perfect entrepreneur match',
+  title: 'Dating App',
+  description: 'Find your perfect match',
 };
 
 export default function RootLayout({
@@ -18,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans">
+      <body className={inter.className}>
         <AuthProvider>
           <AuthRedirect>
             <Navbar />
